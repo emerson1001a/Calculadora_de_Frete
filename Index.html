@@ -1,0 +1,457 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Calculadora de Frete — Caminhão do Paulo</title>
+  <style>
+    :root{
+      --bg:#0b1220;
+      --card:#111c31;
+      --card2:#0f172a;
+      --text:#e5e7eb;
+      --muted:#a7b0c0;
+      --line:rgba(255,255,255,.14);
+      --accent:#38bdf8;
+      --good:#22c55e;
+      --warn:#f59e0b;
+      --bad:#ef4444;
+      --shadow:0 18px 45px rgba(0,0,0,.35);
+      --r:18px;
+    }
+
+    *{box-sizing:border-box}
+    body{
+      margin:0;
+      font-family:system-ui,-apple-system,BlinkMacSystemFont,"Segoe UI",Arial,sans-serif;
+      background:linear-gradient(180deg,#07101f 0%,#0b1220 45%,#07101f 100%);
+      color:var(--text);
+    }
+    .wrap{max-width:1120px;margin:0 auto;padding:18px}
+    .hero{padding:12px 0 14px;display:flex;justify-content:space-between;gap:14px;align-items:flex-start;flex-wrap:wrap}
+    h1{margin:0;font-size:28px;letter-spacing:-.03em}
+    .sub{color:var(--muted);margin-top:5px;line-height:1.35;max-width:760px}
+    .pill{display:inline-flex;align-items:center;gap:8px;padding:8px 12px;border-radius:999px;border:1px solid rgba(56,189,248,.35);background:rgba(56,189,248,.10);color:#bae6fd;font-size:13px;font-weight:800;white-space:nowrap}
+    .grid{display:grid;grid-template-columns:1fr 1fr;gap:14px;align-items:start}
+    @media(max-width:900px){.grid{grid-template-columns:1fr}}
+    .card{background:rgba(17,28,49,.94);border:1px solid var(--line);border-radius:var(--r);box-shadow:var(--shadow);overflow:hidden}
+    .cardHead{padding:13px 15px;border-bottom:1px solid var(--line);display:flex;align-items:center;justify-content:space-between;gap:10px}
+    .cardTitle{font-weight:900;font-size:17px}.cardBody{padding:15px}.formGrid{display:grid;grid-template-columns:1fr 1fr;gap:11px}
+    @media(max-width:620px){.formGrid{grid-template-columns:1fr}}
+    label{display:block;color:var(--muted);font-size:13px;font-weight:800;margin-bottom:6px}
+    input,select{width:100%;padding:12px;border-radius:14px;border:1px solid var(--line);background:var(--card2);color:var(--text);font-size:16px;outline:none}
+    input:focus,select:focus{border-color:rgba(56,189,248,.7);box-shadow:0 0 0 3px rgba(56,189,248,.12)}
+    .btns{display:flex;gap:10px;flex-wrap:wrap;margin-top:13px}
+    button{border:none;border-radius:999px;padding:11px 16px;font-weight:900;cursor:pointer;background:var(--accent);color:#04111f}
+    button.secondary{background:#ffffff1f;color:var(--text);border:1px solid var(--line)}
+    button.danger{background:#ef444422;color:#fecaca;border:1px solid #ef444455}
+    .resultMain{display:grid;grid-template-columns:repeat(2,1fr);gap:11px}
+    @media(max-width:620px){.resultMain{grid-template-columns:1fr}}
+    .metric{background:rgba(255,255,255,.045);border:1px solid var(--line);border-radius:16px;padding:13px}
+    .metric .k{color:var(--muted);font-size:12px;font-weight:900;text-transform:uppercase;letter-spacing:.05em}
+    .metric .v{font-size:23px;font-weight:950;margin-top:4px;letter-spacing:-.03em}
+    .metric.good .v{color:#86efac}.metric.warn .v{color:#fde68a}.metric.bad .v{color:#fecaca}
+    table{width:100%;border-collapse:collapse;margin-top:12px;overflow:hidden;border-radius:14px}
+    th,td{padding:10px;border-bottom:1px solid var(--line);text-align:left;font-size:14px}
+    th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.05em}
+    td:last-child,th:last-child{text-align:right}
+    tr:last-child td{border-bottom:none}
+    .note{margin-top:12px;padding:12px;border-radius:14px;border:1px solid rgba(245,158,11,.28);background:rgba(245,158,11,.08);color:#fde68a;line-height:1.45;font-size:14px}
+    .small{font-size:12px;color:var(--muted);line-height:1.35}.hidden{display:none!important}.sectionGap{margin-top:14px}
+  </style>
+</head>
+<body>
+<div class="wrap">
+  <div class="hero">
+    <div>
+      <h1>Calculadora de Frete — Caminhão do Paulo</h1>
+      <div class="sub">Calculadora offline. Preencha valor do frete e distância. Os parâmetros do caminhão já vêm preenchidos e ficam salvos no navegador.</div>
+    </div>
+    <div class="pill">🚛 Container • 6 eixos • Cavalo + carreta</div>
+  </div>
+
+  <!-- PRIMEIRA LINHA: dados do frete + resultado, para o cálculo ficar mais para cima -->
+  <div class="grid">
+    <div class="card">
+      <div class="cardHead"><div class="cardTitle">Dados do frete</div><div class="small">Entrada principal</div></div>
+      <div class="cardBody">
+        <div class="formGrid">
+          <div><label for="origem">Origem</label><input id="origem" value="Guarujá/SP" placeholder="Ex.: Guarujá/SP"></div>
+          <div><label for="destino">Destino</label><input id="destino" placeholder="Ex.: Uberlândia/MG"></div>
+          <div><label for="frete">Valor do frete recebido (R$)</label><input id="frete" type="number" inputmode="decimal" min="0" step="0.01" placeholder="Ex.: 7500"></div>
+          <div><label for="distanciaIda">Distância de ida carregada (km)</label><input id="distanciaIda" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Ex.: 674"></div>
+        </div>
+
+        <div class="formGrid sectionGap">
+          <div>
+            <label for="tipoRetorno">Volta / retorno</label>
+            <select id="tipoRetorno">
+              <option value="vazio" selected>Volta vazio</option>
+              <option value="carregado">Volta carregado / não considerar retorno vazio</option>
+              <option value="manual">Informar km de volta manualmente</option>
+            </select>
+          </div>
+          <div id="retornoManualBox" class="hidden">
+            <label for="distanciaVolta">Distância de volta considerada (km)</label>
+            <input id="distanciaVolta" type="number" inputmode="decimal" min="0" step="0.1" placeholder="Ex.: 674">
+          </div>
+        </div>
+
+        <div class="btns">
+          <button type="button" id="btnCalcular">Recalcular agora</button>
+          <button type="button" id="btnSalvar" class="secondary">Salvar valores</button>
+          <button type="button" id="btnReset" class="danger">Restaurar padrão</button>
+        </div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="cardHead"><div class="cardTitle">Resumo do frete</div><div class="small" id="statusSave">Pronto para calcular</div></div>
+      <div class="cardBody">
+        <div class="resultMain">
+          <div class="metric" id="lucroCard"><div class="k">Lucro estimado</div><div class="v" id="lucro">R$ 0,00</div></div>
+          <div class="metric"><div class="k">Margem</div><div class="v" id="margem">0,00%</div></div>
+          <div class="metric"><div class="k">Receita por km total</div><div class="v" id="receitaKm">R$ 0,00/km</div></div>
+          <div class="metric"><div class="k">Lucro por km total</div><div class="v" id="lucroKm">R$ 0,00/km</div></div>
+        </div>
+        <div class="note">ANTT não é calculada nesta versão. Esta é uma calculadora operacional offline.</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- SEGUNDA LINHA: parâmetros do caminhão -->
+  <div class="card sectionGap">
+    <div class="cardHead"><div class="cardTitle">Parâmetros do caminhão</div><div class="small">Caminhão do Paulo</div></div>
+    <div class="cardBody">
+      <div class="formGrid">
+        <div><label for="consumoDiesel">Consumo diesel (km/L)</label><input id="consumoDiesel" type="number" inputmode="decimal" min="0.1" step="0.01" value="2.5"></div>
+        <div><label for="precoDiesel">Preço diesel (R$/L)</label><input id="precoDiesel" type="number" inputmode="decimal" min="0" step="0.01" value="6.60"></div>
+        <div><label for="kmPorArla">ARLA — km por litro</label><input id="kmPorArla" type="number" inputmode="decimal" min="0.1" step="0.1" value="12"></div>
+        <div><label for="precoArla">Preço ARLA (R$/L)</label><input id="precoArla" type="number" inputmode="decimal" min="0" step="0.01" value="3.60"></div>
+        <div><label for="manutencaoPct">Manutenção (% do frete)</label><input id="manutencaoPct" type="number" inputmode="decimal" min="0" step="0.1" value="10"></div>
+        <div><label for="depreciacaoKm">Depreciação (R$/km)</label><input id="depreciacaoKm" type="number" inputmode="decimal" min="0" step="0.01" value="0.50"></div>
+        <div><label for="motorista">Motorista (R$) — opcional</label><input id="motorista" type="number" inputmode="decimal" min="0" step="0.01" value="0"></div>
+        <div><label for="pedagio">Pedágio (R$) — opcional</label><input id="pedagio" type="number" inputmode="decimal" min="0" step="0.01" value="0"></div>
+        <div><label for="impostoPct">Imposto/administração (% frete) — opcional</label><input id="impostoPct" type="number" inputmode="decimal" min="0" step="0.1" value="0"></div>
+        <div><label for="outrosCustos">Outros custos (R$) — opcional</label><input id="outrosCustos" type="number" inputmode="decimal" min="0" step="0.01" value="0"></div>
+      </div>
+    </div>
+  </div>
+
+  <!-- TERCEIRA LINHA: detalhamento -->
+  <div class="card sectionGap">
+    <div class="cardHead"><div class="cardTitle">Detalhamento do cálculo</div><div class="small">Custos considerados</div></div>
+    <div class="cardBody">
+      <table>
+        <thead><tr><th>Item</th><th>Valor</th></tr></thead>
+        <tbody id="costTable"></tbody>
+      </table>
+    </div>
+  </div>
+</div>
+
+<script>
+var STORAGE_KEY = "calculadoraFreteCaminhaoPaulo.offline.v5";
+
+var defaults = {
+  origem:"Guarujá/SP",
+  destino:"",
+  frete:"",
+  distanciaIda:"",
+  tipoRetorno:"vazio",
+  distanciaVolta:"",
+  consumoDiesel:"2.5",
+  precoDiesel:"6.60",
+  kmPorArla:"12",
+  precoArla:"3.60",
+  manutencaoPct:"10",
+  depreciacaoKm:"0.50",
+  motorista:"0",
+  pedagio:"0",
+  impostoPct:"0",
+  outrosCustos:"0"
+};
+
+var fields = Object.keys(defaults);
+var essential = [
+  "consumoDiesel","precoDiesel","kmPorArla","precoArla",
+  "manutencaoPct","depreciacaoKm","motorista","pedagio",
+  "impostoPct","outrosCustos"
+];
+
+function el(id){ return document.getElementById(id); }
+function isEmpty(v){ return v === "" || v === null || v === undefined; }
+function toNumber(v){
+  var n = Number(String(v == null ? "" : v).replace(",","."));
+  return isFinite(n) ? n : 0;
+}
+function money(n){ return n.toLocaleString("pt-BR", {style:"currency", currency:"BRL"}); }
+function pct(n){ return n.toLocaleString("pt-BR", {minimumFractionDigits:2, maximumFractionDigits:2}) + "%"; }
+function kmMoney(n){ return money(n) + "/km"; }
+
+function setValue(id, value){
+  var campo = el(id);
+  if(campo) campo.value = value;
+}
+
+function getValue(id){
+  var campo = el(id);
+  return campo ? campo.value : "";
+}
+
+function toggleRetornoManual(){
+  var tipo = getValue("tipoRetorno") || "vazio";
+  var box = el("retornoManualBox");
+  if(box){
+    if(tipo === "manual") box.classList.remove("hidden");
+    else box.classList.add("hidden");
+  }
+}
+
+function carregarEstado(){
+  var saved = {};
+  try{
+    saved = JSON.parse(localStorage.getItem(STORAGE_KEY) || "{}");
+    if(!saved || typeof saved !== "object") saved = {};
+  }catch(e){
+    saved = {};
+  }
+
+  var state = {};
+  fields.forEach(function(key){
+    state[key] = saved.hasOwnProperty(key) ? saved[key] : defaults[key];
+  });
+
+  essential.forEach(function(key){
+    if(isEmpty(state[key])) state[key] = defaults[key];
+  });
+
+  fields.forEach(function(key){
+    setValue(key, state[key]);
+  });
+
+  toggleRetornoManual();
+}
+
+function obterEstado(){
+  var state = {};
+  fields.forEach(function(key){
+    var value = getValue(key);
+    if(essential.indexOf(key) >= 0 && isEmpty(value)) value = defaults[key];
+    state[key] = value;
+  });
+  return state;
+}
+
+function salvarEstado(){
+  try{
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(obterEstado()));
+  }catch(e){}
+
+  var status = el("statusSave");
+  if(status) status.textContent = "Valores salvos neste navegador.";
+}
+
+function restaurarPadrao(){
+  try{ localStorage.removeItem(STORAGE_KEY); }catch(e){}
+
+  fields.forEach(function(key){
+    setValue(key, defaults[key]);
+  });
+
+  toggleRetornoManual();
+  calcularFrete(false);
+}
+
+function addRow(tbody, item, value){
+  if(!tbody) return;
+  var tr = document.createElement("tr");
+  var td1 = document.createElement("td");
+  var td2 = document.createElement("td");
+  td1.textContent = item;
+  td2.textContent = value;
+  tr.appendChild(td1);
+  tr.appendChild(td2);
+  tbody.appendChild(tr);
+}
+
+function salvarECalcular(){
+  salvarEstado();
+  calcularFrete(false);
+}
+
+function calcularFrete(shouldSave){
+  if(shouldSave === undefined) shouldSave = true;
+
+  essential.forEach(function(key){
+    var campo = el(key);
+    if(campo && isEmpty(campo.value)) campo.value = defaults[key];
+  });
+
+  var frete = toNumber(getValue("frete"));
+  var ida = toNumber(getValue("distanciaIda"));
+  var tipoRetorno = getValue("tipoRetorno") || "vazio";
+  var volta = 0;
+
+  if(tipoRetorno === "vazio") volta = ida;
+  else if(tipoRetorno === "manual") volta = toNumber(getValue("distanciaVolta"));
+  else volta = 0;
+
+  var kmTotal = ida + volta;
+
+  var consumoDiesel = toNumber(getValue("consumoDiesel"));
+  var precoDiesel = toNumber(getValue("precoDiesel"));
+  var kmPorArla = toNumber(getValue("kmPorArla"));
+  var precoArla = toNumber(getValue("precoArla"));
+  var manutencaoPct = toNumber(getValue("manutencaoPct"));
+  var depreciacaoKm = toNumber(getValue("depreciacaoKm"));
+  var motorista = toNumber(getValue("motorista"));
+  var pedagio = toNumber(getValue("pedagio"));
+  var impostoPct = toNumber(getValue("impostoPct"));
+  var outrosCustos = toNumber(getValue("outrosCustos"));
+
+  var litrosDiesel = consumoDiesel > 0 ? kmTotal / consumoDiesel : 0;
+  var custoDiesel = litrosDiesel * precoDiesel;
+  var litrosArla = kmPorArla > 0 ? kmTotal / kmPorArla : 0;
+  var custoArla = litrosArla * precoArla;
+  var manutencao = frete * (manutencaoPct / 100);
+  var depreciacao = kmTotal * depreciacaoKm;
+  var imposto = frete * (impostoPct / 100);
+  var custoTotal = custoDiesel + custoArla + manutencao + depreciacao + motorista + pedagio + imposto + outrosCustos;
+  var lucro = frete - custoTotal;
+  var margem = frete > 0 ? (lucro / frete) * 100 : 0;
+  var receitaKm = kmTotal > 0 ? frete / kmTotal : 0;
+  var custoKm = kmTotal > 0 ? custoTotal / kmTotal : 0;
+  var lucroKm = kmTotal > 0 ? lucro / kmTotal : 0;
+  var receitaKmCarregado = ida > 0 ? frete / ida : 0;
+
+  if(el("lucro")) el("lucro").textContent = money(lucro);
+  if(el("margem")) el("margem").textContent = pct(margem);
+  if(el("receitaKm")) el("receitaKm").textContent = kmMoney(receitaKm);
+  if(el("lucroKm")) el("lucroKm").textContent = kmMoney(lucroKm);
+
+  var lucroCard = el("lucroCard");
+  if(lucroCard){
+    lucroCard.classList.remove("good","warn","bad");
+    if(lucro > 0 && margem >= 30) lucroCard.classList.add("good");
+    else if(lucro > 0) lucroCard.classList.add("warn");
+    else lucroCard.classList.add("bad");
+  }
+
+  var costTable = el("costTable");
+  if(costTable) costTable.innerHTML = "";
+
+  addRow(costTable,"Frete recebido",money(frete));
+  addRow(costTable,"Origem → destino",(getValue("origem") || "-") + " → " + (getValue("destino") || "-"));
+  addRow(costTable,"Distância ida carregada",ida.toLocaleString("pt-BR") + " km");
+  addRow(costTable,tipoRetorno === "vazio" ? "Distância volta vazia" : tipoRetorno === "manual" ? "Distância de volta considerada" : "Retorno vazio",volta.toLocaleString("pt-BR") + " km");
+  addRow(costTable,"Distância total",kmTotal.toLocaleString("pt-BR") + " km");
+  addRow(costTable,"Receita por km total",kmMoney(receitaKm));
+  addRow(costTable,"Receita por km carregado",kmMoney(receitaKmCarregado));
+  addRow(costTable,"Diesel — " + litrosDiesel.toLocaleString("pt-BR",{maximumFractionDigits:2}) + " L",money(custoDiesel));
+  addRow(costTable,"ARLA — " + litrosArla.toLocaleString("pt-BR",{maximumFractionDigits:2}) + " L",money(custoArla));
+  addRow(costTable,"Manutenção",money(manutencao));
+  addRow(costTable,"Depreciação",money(depreciacao));
+  addRow(costTable,"Motorista",money(motorista));
+  addRow(costTable,"Pedágio",money(pedagio));
+  addRow(costTable,"Imposto/administração",money(imposto));
+  addRow(costTable,"Outros custos",money(outrosCustos));
+  addRow(costTable,"Custo total",money(custoTotal));
+  addRow(costTable,"Custo por km total",kmMoney(custoKm));
+
+  if(shouldSave) salvarEstado();
+}
+
+function iniciarCalculadora(){
+  carregarEstado();
+  calcularFrete(false);
+
+  var calcTimer = null;
+  var lastAutoState = "";
+
+  function agendarCalculo(shouldSave){
+    if(calcTimer) clearTimeout(calcTimer);
+    calcTimer = setTimeout(function(){
+      calcularFrete(shouldSave);
+    }, 60);
+  }
+
+  function ligarBotao(id, fn){
+    var botao = el(id);
+    if(!botao) return;
+
+    var ultimoToque = 0;
+    var handler = function(ev){
+      if(ev){
+        ev.preventDefault();
+        ev.stopPropagation();
+      }
+
+      var agora = new Date().getTime();
+      if(agora - ultimoToque < 250) return false;
+      ultimoToque = agora;
+
+      fn();
+      return false;
+    };
+
+    botao.addEventListener("click", handler, false);
+    botao.addEventListener("touchend", handler, false);
+    botao.addEventListener("pointerup", handler, false);
+  }
+
+  ligarBotao("btnCalcular", function(){
+    calcularFrete(true);
+    var status = el("statusSave");
+    if(status) status.textContent = "Frete recalculado.";
+  });
+
+  ligarBotao("btnSalvar", function(){
+    salvarECalcular();
+  });
+
+  ligarBotao("btnReset", function(){
+    restaurarPadrao();
+  });
+
+  var tipo = el("tipoRetorno");
+  if(tipo){
+    tipo.addEventListener("change", function(){
+      toggleRetornoManual();
+      agendarCalculo(true);
+    }, false);
+  }
+
+  fields.forEach(function(id){
+    var campo = el(id);
+    if(!campo) return;
+
+    campo.addEventListener("input", function(){ agendarCalculo(true); }, false);
+    campo.addEventListener("change", function(){ agendarCalculo(true); }, false);
+    campo.addEventListener("keyup", function(){ agendarCalculo(true); }, false);
+    campo.addEventListener("blur", function(){ agendarCalculo(true); }, false);
+    campo.addEventListener("touchend", function(){
+      setTimeout(function(){ agendarCalculo(true); }, 120);
+    }, false);
+  });
+
+  // Segurança extra para iPhone/Safari: se algum evento do teclado não disparar,
+  // o cálculo ainda roda quando os valores mudarem. Não recalcula em loop à toa.
+  setInterval(function(){
+    var estadoAtual = JSON.stringify(obterEstado());
+    if(estadoAtual !== lastAutoState){
+      lastAutoState = estadoAtual;
+      calcularFrete(false);
+    }
+  }, 900);
+}
+
+// Inicializa em celulares e navegadores que abrem arquivo local de forma diferente.
+if(document.readyState === "loading"){
+  document.addEventListener("DOMContentLoaded", iniciarCalculadora);
+}else{
+  iniciarCalculadora();
+}
+</script>
+</body>
+</html>
